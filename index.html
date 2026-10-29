@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1d5bbf">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="יומן פעילות">
+<title>יומן פעילות מאבטחים</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f2f4f7; --card:#ffffff; --text:#152030; --muted:#5b6878; --line:#d9e0e8;
+    --accent:#1d5bbf; --accent-ink:#ffffff; --accent-soft:#e6eefb;
+    --ok:#17703f; --ok-bg:#e2f3e9; --bad:#b42318; --bad-bg:#fdeceb;
+    --warn-bg:#fff6e0; --warn:#8a5a00; --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0e131a; --card:#17202b; --text:#e7edf4; --muted:#9aa8b8; --line:#2a3644;
+      --accent:#5b97f2; --accent-ink:#08111f; --accent-soft:#1c2c45;
+      --ok:#62d394; --ok-bg:#14301f; --bad:#ff8577; --bad-bg:#3a1714;
+      --warn-bg:#352a10; --warn:#f2c35b; --shadow:none;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:'Rubik',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:1.45}
+  [hidden]{display:none!important}
+  button,input,select,textarea{font:inherit;color:inherit}
+  a{color:var(--accent)}
+
+  header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+  .brand{font-weight:700;font-size:17px}
+  .who{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);min-width:0}
+  .who b{color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  main{max-width:640px;margin:0 auto;padding:16px}
+  main.wide{max-width:1500px}
+  .demo{background:var(--warn-bg);color:var(--warn);text-align:center;font-size:13px;padding:6px 12px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .card + .card{margin-top:14px}
+  h1{font-size:22px;margin:0 0 6px} h2{font-size:18px;margin:0 0 12px}
+  .muted{color:var(--muted)} .small{font-size:13px}
+
+  label.field{display:block;margin:0 0 14px}
+  label.field > span,.field-title{display:block;font-weight:500;margin-bottom:6px}
+  input[type=text],input[type=email],input[type=search],input[type=date],input[type=datetime-local],input:not([type]),select,textarea{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);min-height:46px}
+  textarea{min-height:96px;resize:vertical}
+  input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid var(--accent-soft);outline-offset:0;border-color:var(--accent)}
+  .ltr{direction:ltr;text-align:right}
+  .row{display:flex;gap:8px;align-items:stretch}
+  .row > .grow{flex:1;min-width:0}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--card);
+    border-radius:10px;padding:10px 14px;min-height:46px;cursor:pointer;font-weight:500;white-space:nowrap}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);width:100%;font-size:17px;min-height:52px}
+  .btn.primary:disabled{opacity:.6;cursor:progress}
+  .btn.link{border:none;background:none;color:var(--accent);padding:6px;min-height:auto}
+  .btn.sm{min-height:36px;padding:6px 10px;font-size:14px}
+  .btn svg{width:20px;height:20px;flex:none}
+
+  .check{display:flex;gap:10px;align-items:center;margin:4px 0 16px;cursor:pointer}
+  .check input{width:20px;height:20px}
+
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .seg label{position:relative;cursor:pointer}
+  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg span{display:flex;align-items:center;justify-content:center;min-height:54px;border:2px solid var(--line);border-radius:12px;
+    font-weight:500;font-size:17px;background:var(--card);text-align:center;padding:6px}
+  .seg input:checked + span{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .seg input:focus-visible + span{outline:3px solid var(--accent-soft)}
+  .seg.yesno input[value="כן"]:checked + span{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+  .seg.yesno input[value="לא"]:checked + span{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
+
+  .media{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .hint{background:var(--bad-bg);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:14px;margin:0 0 14px}
+  .err{background:var(--bad-bg);color:var(--bad);border-radius:10px;padding:10px 12px;margin:12px 0 0;font-size:15px}
+
+  .recorder{display:flex;align-items:center;gap:12px;margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bad-bg);color:var(--bad)}
+  .recorder .dot{width:12px;height:12px;border-radius:50%;background:var(--bad);animation:pulse 1s infinite}
+  .recorder .grow{flex:1;font-weight:500}
+  @keyframes pulse{50%{opacity:.25}}
+
+  .files{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+  .files li{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+  .thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;flex:none;background:var(--accent-soft);
+    display:flex;align-items:center;justify-content:center;color:var(--accent)}
+  .thumb svg{width:22px;height:22px}
+  .files .meta{flex:1;min-width:0}
+  .files .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+  .files .size{font-size:12px;color:var(--muted)}
+  .x{border:none;background:none;cursor:pointer;color:var(--muted);font-size:22px;line-height:1;padding:4px 8px}
+
+  .tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto}
+  .tabs button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:500;white-space:nowrap}
+  .tabs button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+  .toolbar input[type=search]{flex:1;min-width:180px;min-height:40px}
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);max-height:calc(100vh - 220px)}
+  table{border-collapse:separate;border-spacing:0;width:100%;font-size:14px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+  thead th{position:sticky;background:var(--card);z-index:2}
+  thead tr:first-child th{top:0;font-weight:500;white-space:nowrap}
+  thead tr.filters th{top:37px;padding:6px;border-bottom:2px solid var(--line)}
+  thead tr.filters input,thead tr.filters select{min-height:34px;padding:5px 8px;font-size:13px;min-width:110px;border-radius:8px}
+  th.sortable{cursor:pointer;user-select:none}
+  th .arrow{display:inline-block;width:14px;color:var(--accent);margin-inline-start:4px}
+  .range{display:grid;gap:4px}
+  tbody tr:hover td{background:var(--accent-soft)}
+  .nowrap{white-space:nowrap}
+  .clip{max-width:320px;white-space:pre-wrap;word-break:break-word}
+  .sub{font-size:12px;color:var(--muted)}
+  .badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap}
+  .b-ok{background:var(--ok-bg);color:var(--ok)} .b-bad{background:var(--bad-bg);color:var(--bad)}
+  .b-event{background:var(--warn-bg);color:var(--warn)} .b-axis{background:var(--accent-soft);color:var(--accent)}
+  .empty{padding:28px;text-align:center;color:var(--muted)}
+  .grid-add{display:grid;grid-template-columns:2fr 2fr 1fr auto;gap:8px;align-items:end}
+  .grid-add label.field{margin:0}
+  @media (max-width:700px){.grid-add{grid-template-columns:1fr}}
+
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;
+    background:var(--text);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:500;transition:.25s;z-index:50;max-width:90vw;text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.bad{background:var(--bad);color:#fff}
+  .center{display:flex;justify-content:center;padding:60px 0}
+  .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="demoBar" class="demo" hidden>מצב תצוגה מקדימה — הנתונים לדוגמה בלבד ואינם נשמרים</div>
+
+<header id="topbar" hidden>
+  <div class="brand">יומן פעילות</div>
+  <div class="who"><b id="whoName"></b><span id="whoRole" class="badge b-axis"></span>
+    <button class="btn link" id="logoutBtn" type="button">יציאה</button></div>
+</header>
+
+<main id="main">
+  <section id="view-loading" class="center"><div class="spinner" aria-label="טוען"></div></section>
+
+  <!-- ───── Login ───── -->
+  <section id="view-login" hidden>
+    <div class="card">
+      <h1>כניסה למערכת</h1>
+      <p class="muted">התחברו עם חשבון Google שהמנהל רשם במערכת.</p>
+      <label class="check"><input type="checkbox" id="trustDevice"> להישאר מחובר במכשיר זה</label>
+      <div id="gBtn" style="display:flex;justify-content:center;min-height:44px"></div>
+      <button class="btn primary" type="button" id="demoLogin" hidden>כניסה לדוגמה</button>
+      <p class="muted small" id="loginBusy" style="text-align:center" hidden>מתחבר…</p>
+      <div class="err" id="loginErr" hidden></div>
+    </div>
+  </section>
+
+  <!-- ───── App ───── -->
+  <section id="view-app" hidden>
+    <nav class="tabs" id="tabs" role="tablist" hidden>
+      <button role="tab" data-tab="log" aria-selected="true">רישום פעילות</button>
+      <button role="tab" data-tab="events" aria-selected="false">יומן פעילויות</button>
+      <button role="tab" data-tab="users" aria-selected="false">משתמשים</button>
+    </nav>
+
+    <!-- Log form -->
+    <div id="tab-log">
+      <form id="logForm" class="card" novalidate>
+        <div class="field-title">סוג פעילות</div>
+        <div class="seg" id="typeSeg">
+          <label><input type="radio" name="type" value="ארוע" checked><span>ארוע</span></label>
+          <label><input type="radio" name="type" value="פתיחת ציר"><span>פתיחת ציר</span></label>
+        </div>
+
+        <label class="field"><span>זמן</span>
+          <div class="row">
+            <input type="datetime-local" id="activityTime" class="grow" required>
+            <button class="btn" type="button" id="nowBtn">עכשיו</button>
+          </div>
+        </label>
+
+        <div id="eventFields">
+          <label class="field"><span>תיאור</span>
+            <textarea id="description" placeholder="מה קרה?"></textarea></label>
+        </div>
+
+        <div id="axisFields" hidden>
+          <div class="field-title">הגדר שלמה וכל השערים נעולים?</div>
+          <div class="seg yesno">
+            <label><input type="radio" name="fenceOk" value="כן"><span>כן</span></label>
+            <label><input type="radio" name="fenceOk" value="לא"><span>לא</span></label>
+          </div>
+          <p class="hint" id="noHint" hidden>נבחר "לא" — יש להזין הערות או לצרף לפחות קובץ, תמונה או הקלטה.</p>
+          <label class="field"><span>הערות</span>
+            <textarea id="comments" placeholder="פירוט ממצאים"></textarea></label>
+        </div>
+
+        <div class="field-title">קבצים ומדיה</div>
+        <div class="media">
+          <button class="btn" type="button" data-pick="inFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5l-8.6 8.6a5 5 0 01-7.1-7.1l8.6-8.6a3.3 3.3 0 014.7 4.7l-8.6 8.6a1.7 1.7 0 01-2.4-2.4l7.9-7.9"/></svg>
+            צירוף קובץ</button>
+          <button class="btn" type="button" data-pick="inPhoto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+            צילום תמונה</button>
+          <button class="btn" type="button" data-pick="inVideo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>
+            צילום וידאו</button>
+          <button class="btn" type="button" id="audioBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+            הקלטת אודיו</button>
+        </div>
+        <input type="file" id="inFile" multiple hidden>
+        <input type="file" id="inPhoto" accept="image/*" capture="environment" hidden>
+        <input type="file" id="inVideo" accept="video/*" capture="environment" hidden>
+        <input type="file" id="inAudio" accept="audio/*" capture hidden>
+
+        <div class="recorder" id="recorder" hidden>
+          <span class="dot"></span><span class="grow">מקליט… <span id="recTime" dir="ltr">0:00</span></span>
+          <button class="btn sm" type="button" id="recStop">עצירה ושמירה</button>
+          <button class="btn sm" type="button" id="recCancel">ביטול</button>
+        </div>
+
+        <ul class="files" id="fileList"></ul>
+
+        <div class="err" id="formErr" hidden></div>
+        <button class="btn primary" type="submit" id="submitBtn" style="margin-top:18px">שמירה</button>
+        <p class="muted small" id="progress" style="text-align:center;margin:8px 0 0"></p>
+      </form>
+    </div>
+
+    <!-- Admin: events -->
+    <div id="tab-events" hidden>
+      <div class="toolbar">
+        <input type="search" id="evSearch" placeholder="חיפוש בכל השדות…">
+        <button class="btn sm" type="button" id="evClear">ניקוי סינון</button>
+        <button class="btn sm" type="button" id="evRefresh">רענון</button>
+        <span class="muted small" id="evCount"></span>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead id="evHead"></thead>
+          <tbody id="evBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Admin: users -->
+    <div id="tab-users" hidden>
+      <form class="card" id="addUserForm" novalidate>
+        <h2>הוספת משתמש</h2>
+        <div class="grid-add">
+          <label class="field"><span>אימייל</span><input type="email" id="nuEmail" class="ltr" required></label>
+          <label class="field"><span>שם</span><input type="text" id="nuName" required></label>
+          <label class="field"><span>תפקיד</span>
+            <select id="nuRole"><option value="logger">רושם</option><option value="admin">מנהל</option></select></label>
+          <button class="btn" type="submit" style="background:var(--accent);color:var(--accent-ink);border-color:var(--accent)">הוספה</button>
+        </div>
+        <div class="err" id="userErr" hidden></div>
+      </form>
+      <div class="card" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th>שם</th><th>אימייל</th><th>תפקיד</th><th>פעיל</th><th>נוצר</th></tr></thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ───────── configuration — fill these two in ───────── */
+  const CONFIG = {
+    // Apps Script → Deploy → Web app URL (ends with /exec)
+    API_URL: 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE',
+    // Google Cloud Console → OAuth Client ID (same value as GOOGLE_CLIENT_ID in Code.gs)
+    GOOGLE_CLIENT_ID: 'PASTE_CLIENT_ID_HERE.apps.googleusercontent.com'
+  };
+
+  /* ───────── backend bridge (sample data while CONFIG is not filled in) ───────── */
+  const DEMO = /^PASTE_/.test(CONFIG.API_URL) || /^PASTE_/.test(CONFIG.GOOGLE_CLIENT_ID);
+  const mock = DEMO ? makeMock() : null;
+
+  async function run(fn) {
+    const args = Array.prototype.slice.call(arguments, 1);
+    if (DEMO) return new Promise(function (res, rej) {
+      setTimeout(function () { try { res(mock[fn].apply(null, args)); } catch (e) { rej(e); } }, 300);
+    });
+    let res;
+    try {
+      // text/plain body keeps this a "simple" request, so no CORS preflight is needed.
+      res = await fetch(CONFIG.API_URL, { method: 'POST', body: JSON.stringify({ fn: fn, args: args }) });
+    } catch (e) { throw new Error('אין חיבור לשרת. בדקו את החיבור לאינטרנט ונסו שוב'); }
+    if (!res.ok) throw new Error('שגיאת שרת (' + res.status + ')');
+    let data;
+    try { data = await res.json(); } catch (e) { throw new Error('תגובה לא תקינה מהשרת'); }
+    if (!data.ok) throw new Error(data.error || 'שגיאה');
+    return data.result;
+  }
+  function errMsg(e) {
+    const m = (e && e.message) ? e.message : String(e || 'שגיאה');
+    return m.replace(/^Exception:\s*/, '').replace(/^Error:\s*/, '');
+  }
+  async function call(fn) {
+    try { return await run.apply(null, arguments); }
+    catch (e) {
+      if (errMsg(e).indexOf('AUTH_REQUIRED') >= 0) {
+        clearToken(); showLogin(); toast('פג תוקף ההתחברות. יש להתחבר מחדש', true);
+        throw new Error('__handled__');
+      }
+      throw e;
+    }
+  }
+
+  /* ───────── state & storage ───────── */
+  const TOKEN_KEY = 'guardlog_token';
+  const MAX_MB = 25;
+  const state = { token: null, user: null, files: [], events: [], users: [], sort: { key: 'time', dir: -1 } };
+
+  function saveToken(token, trusted) {
+    try {
+      localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_KEY);
+      (trusted ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
+    } catch (e) { /* storage unavailable: session lives in memory only */ }
+    state.token = token;
+  }
+  function loadToken() {
+    try { return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
+  }
+  function clearToken() {
+    try { localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    state.token = null; state.user = null;
+  }
+
+  /* ───────── utils ───────── */
+  const $ = function (s) { return document.querySelector(s); };
+  const $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  let toastTimer;
+  function toast(msg, bad) {
+    const t = $('#toast'); t.textContent = msg; t.className = 'show' + (bad ? ' bad' : '');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.className = ''; }, 3500);
+  }
+  function showErr(el, msg) { el.textContent = msg; el.hidden = !msg; }
+  function nowLocal() {
+    const d = new Date(); d.setSeconds(0, 0);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  }
+  function fmtSize(b) { return b < 1048576 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toFixed(1) + ' MB'; }
+  function stamp() { return nowLocal().replace('T', '_').replace(/:/g, '-'); }
+  const ROLE_LABEL = { admin: 'מנהל', logger: 'רושם' };
+
+  /* ───────── views ───────── */
+  function show(id) {
+    ['#view-loading', '#view-login', '#view-app'].forEach(function (v) { $(v).hidden = v !== id; });
+    $('#topbar').hidden = id !== '#view-app';
+  }
+  function showLogin() {
+    show('#view-login');
+    showErr($('#loginErr'), ''); $('#loginBusy').hidden = true;
+    $('#main').classList.remove('wide');
+    initGoogle();
+  }
+  function showApp() {
+    show('#view-app');
+    $('#whoName').textContent = state.user.name;
+    $('#whoRole').textContent = ROLE_LABEL[state.user.role] || '';
+    $('#tabs').hidden = state.user.role !== 'admin';
+    selectTab('log');
+    resetForm();
+  }
+  function selectTab(tab) {
+    $$('#tabs button').forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.tab === tab)); });
+    ['log', 'events', 'users'].forEach(function (t) { $('#tab-' + t).hidden = t !== tab; });
+    $('#main').classList.toggle('wide', tab === 'events');
+    if (tab === 'events') loadEvents();
+    if (tab === 'users') loadUsers();
+  }
+
+  /* ───────── login ───────── */
+  let googleReady = false, googleWait = 0;
+  function initGoogle() {
+    if (DEMO) { $('#demoLogin').hidden = false; return; }
+    if (googleReady) return;
+    const gis = window.google && window.google.accounts && window.google.accounts.id;
+    if (!gis) {
+      // The Google script loads asynchronously; wait up to ~10 seconds for it.
+      if (++googleWait > 50) return showErr($('#loginErr'), 'לא ניתן לטעון את כניסת Google. בדקו את החיבור לאינטרנט ורעננו את הדף');
+      return setTimeout(initGoogle, 200);
+    }
+    gis.initialize({ client_id: CONFIG.GOOGLE_CLIENT_ID, callback: onGoogleCredential, ux_mode: 'popup', itp_support: true });
+    gis.renderButton($('#gBtn'), {
+      theme: 'filled_blue', size: 'large', shape: 'pill', text: 'signin_with', locale: 'he',
+      width: Math.min(360, $('#gBtn').clientWidth || 300)
+    });
+    googleReady = true;
+  }
+  async function signInWith(credential) {
+    showErr($('#loginErr'), ''); $('#loginBusy').hidden = false;
+    try {
+      const r = await run('signIn', credential, $('#trustDevice').checked, navigator.userAgent);
+      saveToken(r.token, r.trusted); state.user = r.user;
+      showApp();
+    } catch (err) { showErr($('#loginErr'), errMsg(err)); }
+    finally { $('#loginBusy').hidden = true; }
+  }
+  function onGoogleCredential(resp) { signInWith(resp && resp.credential); }
+  $('#demoLogin').addEventListener('click', function () { signInWith('demo'); });
+
+  $('#logoutBtn').addEventListener('click', async function () {
+    const t = state.token; clearToken(); showLogin();
+    try { if (window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch (e) {}
+    try { await run('logout', t); } catch (e) {}
+  });
+  $$('#tabs button').forEach(function (b) { b.addEventListener('click', function () { selectTab(b.dataset.tab); }); });
+
+  /* ───────── activity form ───────── */
+  function currentType() { return $('input[name=type]:checked').value; }
+  function currentFence() { const r = $('input[name=fenceOk]:checked'); return r ? r.value : ''; }
+  function syncForm() {
+    const axis = currentType() === 'פתיחת ציר';
+    $('#eventFields').hidden = axis; $('#axisFields').hidden = !axis;
+    $('#noHint').hidden = !(axis && currentFence() === 'לא');
+  }
+  $$('input[name=type], input[name=fenceOk]').forEach(function (r) {
+    r.addEventListener('change', function () { syncForm(); showErr($('#formErr'), ''); });
+  });
+  $('#nowBtn').addEventListener('click', function () { $('#activityTime').value = nowLocal(); });
+
+  function resetForm() {
+    $('#activityTime').value = nowLocal();
+    $('#description').value = ''; $('#comments').value = '';
+    $$('input[name=fenceOk]').forEach(function (r) { r.checked = false; });
+    state.files.forEach(function (f) { if (f.preview) URL.revokeObjectURL(f.preview); });
+    state.files = []; renderFiles(); syncForm();
+    showErr($('#formErr'), ''); $('#progress').textContent = '';
+  }
+
+  // file pickers
+  $$('[data-pick]').forEach(function (b) {
+    b.addEventListener('click', function () { const inp = $('#' + b.dataset.pick); inp.value = ''; inp.click(); });
+  });
+  ['#inFile', '#inPhoto', '#inVideo', '#inAudio'].forEach(function (id) {
+    $(id).addEventListener('change', function () { Array.prototype.forEach.call(this.files, addFile); });
+  });
+
+  let seq = 0;
+  function addFile(file) {
+    if (file.size > MAX_MB * 1048576 && !/^image\//.test(file.type)) {
+      return toast('הקובץ ' + file.name + ' גדול מ-' + MAX_MB + 'MB', true);
+    }
+    const item = { key: ++seq, file: file, name: file.name || ('קובץ_' + stamp()), type: file.type || '' };
+    if (/^image\//.test(item.type)) item.preview = URL.createObjectURL(file);
+    state.files.push(item); renderFiles(); showErr($('#formErr'), '');
+  }
+  const ICONS = {
+    video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>',
+    audio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>',
+    file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4"/></svg>'
+  };
+  function renderFiles() {
+    $('#fileList').innerHTML = state.files.map(function (f) {
+      const kind = /^video\//.test(f.type) ? 'video' : /^audio\//.test(f.type) ? 'audio' : 'file';
+      const thumb = f.preview ? '<img class="thumb" src="' + f.preview + '" alt="">' : '<span class="thumb">' + ICONS[kind] + '</span>';
+      return '<li>' + thumb + '<div class="meta"><div class="name">' + esc(f.name) + '</div><div class="size">' + fmtSize(f.file.size) +
+        '</div></div><button type="button" class="x" data-del="' + f.key + '" aria-label="הסרה">×</button></li>';
+    }).join('');
+  }
+  $('#fileList').addEventListener('click', function (e) {
+    const b = e.target.closest('[data-del]'); if (!b) return;
+    const i = state.files.findIndex(function (f) { return String(f.key) === b.dataset.del; });
+    if (i >= 0) { if (state.files[i].preview) URL.revokeObjectURL(state.files[i].preview); state.files.splice(i, 1); renderFiles(); }
+  });
+
+  // audio recording (falls back to the device recorder via file input)
+  let rec = null, recStream = null, recChunks = [], recTimer = null, recStart = 0, recCancelled = false, audioFallback = false;
+  function pickAudioMime() {
+    const opts = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm'];
+    for (let i = 0; i < opts.length; i++) if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(opts[i])) return opts[i];
+    return '';
+  }
+  $('#audioBtn').addEventListener('click', async function () {
+    if (rec) return;
+    if (audioFallback || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+      $('#inAudio').value = ''; return $('#inAudio').click();
+    }
+    try { recStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch (e) { audioFallback = true; $('#inAudio').value = ''; $('#inAudio').click(); return; }
+    const mime = pickAudioMime();
+    rec = mime ? new MediaRecorder(recStream, { mimeType: mime }) : new MediaRecorder(recStream);
+    recChunks = []; recCancelled = false;
+    rec.ondataavailable = function (ev) { if (ev.data && ev.data.size) recChunks.push(ev.data); };
+    rec.onstop = function () {
+      recStream.getTracks().forEach(function (t) { t.stop(); });
+      clearInterval(recTimer); $('#recorder').hidden = true;
+      if (!recCancelled && recChunks.length) {
+        const type = rec.mimeType || mime || 'audio/webm';
+        const ext = /mp4/.test(type) ? 'm4a' : /ogg/.test(type) ? 'ogg' : 'webm';
+        addFile(new File(recChunks, 'הקלטה_' + stamp() + '.' + ext, { type: type.split(';')[0] }));
+      }
+      rec = null;
+    };
+    rec.start(1000); recStart = Date.now(); $('#recorder').hidden = false; $('#recTime').textContent = '0:00';
+    recTimer = setInterval(function () {
+      const s = Math.floor((Date.now() - recStart) / 1000);
+      $('#recTime').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }, 500);
+  });
+  $('#recStop').addEventListener('click', function () { if (rec) rec.stop(); });
+  $('#recCancel').addEventListener('click', function () { if (rec) { recCancelled = true; rec.stop(); } });
+
+  // image downscaling before upload
+  function compressImage(file) {
+    return new Promise(function (resolve) {
+      if (!/^image\/(jpeg|png|webp|heic|heif)$/i.test(file.type) || file.size < 700 * 1024) return resolve(file);
+      const url = URL.createObjectURL(file); const img = new Image();
+      img.onload = function () {
+        const max = 1920, s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function (b) {
+          URL.revokeObjectURL(url);
+          resolve(b && b.size < file.size ? new File([b], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' }) : file);
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+  function toBase64(blob) {
+    return new Promise(function (res, rej) {
+      const r = new FileReader();
+      r.onload = function () { res(String(r.result).split(',')[1] || ''); };
+      r.onerror = function () { rej(r.error); };
+      r.readAsDataURL(blob);
+    });
+  }
+
+  $('#logForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if (rec) return showErr($('#formErr'), 'יש לעצור את ההקלטה לפני השמירה');
+    const type = currentType(), fence = currentFence();
+    const desc = $('#description').value.trim(), comments = $('#comments').value.trim();
+    const hasFiles = state.files.length > 0;
+    if (!$('#activityTime').value) return showErr($('#formErr'), 'יש להזין זמן');
+    if (type === 'ארוע' && !desc && !hasFiles) return showErr($('#formErr'), 'יש להזין תיאור או לצרף קובץ');
+    if (type === 'פתיחת ציר') {
+      if (!fence) return showErr($('#formErr'), 'יש לסמן האם הגדר תקינה והשערים נעולים');
+      if (fence === 'לא' && !comments && !hasFiles) return showErr($('#formErr'), 'נבחר "לא" — יש להזין הערות או לצרף קובץ, תמונה או הקלטה');
+    }
+    showErr($('#formErr'), '');
+    const btn = $('#submitBtn'); btn.disabled = true; btn.textContent = 'שומר…';
+    try {
+      const uploaded = [];
+      for (let i = 0; i < state.files.length; i++) {
+        $('#progress').textContent = 'מעלה קובץ ' + (i + 1) + ' מתוך ' + state.files.length + '…';
+        const f = await compressImage(state.files[i].file);
+        if (f.size > MAX_MB * 1048576) throw new Error('הקובץ ' + state.files[i].name + ' גדול מ-' + MAX_MB + 'MB');
+        const r = await call('uploadFile', state.token, { name: f.name || state.files[i].name, mimeType: f.type, data: await toBase64(f) });
+        uploaded.push({ id: r.id, name: r.name });
+      }
+      $('#progress').textContent = 'שומר רישום…';
+      await call('submitActivity', state.token, {
+        type: type, activityTime: $('#activityTime').value,
+        description: type === 'ארוע' ? desc : '', fenceOk: type === 'פתיחת ציר' ? fence : '',
+        comments: type === 'פתיחת ציר' ? comments : '', files: uploaded
+      });
+      toast('הפעילות נרשמה בהצלחה');
+      resetForm();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      if (err.message !== '__handled__') showErr($('#formErr'), errMsg(err));
+      $('#progress').textContent = '';
+    } finally {
+      btn.disabled = false; btn.textContent = 'שמירה';
+    }
+  });
+
+  /* ───────── admin: events ───────── */
+  const COLS = [
+    { key: 'time', label: 'זמן פעילות', sortKey: 'timeTs', filter: 'daterange' },
+    { key: 'type', label: 'סוג', filter: 'select', options: ['ארוע', 'פתיחת ציר'] },
+    { key: 'userName', label: 'משתמש', filter: 'text', extra: 'userEmail' },
+    { key: 'description', label: 'תיאור', filter: 'text' },
+    { key: 'fenceOk', label: 'גדר ושערים תקינים', filter: 'select', options: ['כן', 'לא'] },
+    { key: 'comments', label: 'הערות', filter: 'text' },
+    { key: 'files', label: 'קבצים', filter: 'select', options: ['יש', 'אין'] },
+    { key: 'loggedAt', label: 'זמן רישום', sortKey: 'loggedTs', filter: 'daterange' }
+  ];
+  function colByKey(k) { return COLS.filter(function (c) { return c.key === k; })[0]; }
+
+  function buildEventsHead() {
+    const head = COLS.map(function (c) {
+      return '<th class="sortable" data-sort="' + c.key + '">' + c.label + '<span class="arrow"></span></th>';
+    }).join('');
+    const filters = COLS.map(function (c) {
+      if (c.filter === 'text') return '<th><input type="search" data-f="' + c.key + '" placeholder="סינון…" aria-label="סינון ' + c.label + '"></th>';
+      if (c.filter === 'select') return '<th><select data-f="' + c.key + '" aria-label="סינון ' + c.label + '"><option value="">הכל</option>' +
+        c.options.map(function (o) { return '<option>' + o + '</option>'; }).join('') + '</select></th>';
+      return '<th><div class="range"><input type="date" data-f="' + c.key + '" data-r="from" aria-label="' + c.label + ' מתאריך" title="מתאריך">' +
+        '<input type="date" data-f="' + c.key + '" data-r="to" aria-label="' + c.label + ' עד תאריך" title="עד תאריך"></div></th>';
+    }).join('');
+    $('#evHead').innerHTML = '<tr>' + head + '</tr><tr class="filters">' + filters + '</tr>';
+  }
+  buildEventsHead();
+  $('#evHead').addEventListener('input', renderEvents);
+  $('#evHead').addEventListener('change', renderEvents);
+  $('#evSearch').addEventListener('input', renderEvents);
+  $('#evHead').addEventListener('click', function (e) {
+    const th = e.target.closest('th[data-sort]'); if (!th) return;
+    const k = th.dataset.sort;
+    state.sort = state.sort.key === k ? { key: k, dir: -state.sort.dir } : { key: k, dir: k === 'time' || k === 'loggedAt' ? -1 : 1 };
+    renderEvents();
+  });
+  $('#evClear').addEventListener('click', function () {
+    $$('#evHead [data-f]').forEach(function (el) { el.value = ''; }); $('#evSearch').value = ''; renderEvents();
+  });
+  $('#evRefresh').addEventListener('click', loadEvents);
+
+  async function loadEvents() {
+    $('#evBody').innerHTML = '<tr><td colspan="' + COLS.length + '" class="empty">טוען…</td></tr>';
+    try { state.events = await call('getEvents', state.token); renderEvents(); }
+    catch (e) { if (e.message !== '__handled__') $('#evBody').innerHTML = '<tr><td colspan="' + COLS.length + '" class="empty">' + esc(errMsg(e)) + '</td></tr>'; }
+  }
+  function filtered() {
+    const fs = $$('#evHead [data-f]').filter(function (el) { return el.value; });
+    const g = $('#evSearch').value.trim().toLowerCase();
+    return state.events.filter(function (ev) {
+      for (let i = 0; i < fs.length; i++) {
+        const el = fs[i], v = el.value, c = colByKey(el.dataset.f);
+        if (c.filter === 'text') {
+          const hay = (String(ev[c.key] || '') + ' ' + (c.extra ? ev[c.extra] : '')).toLowerCase();
+          if (hay.indexOf(v.trim().toLowerCase()) < 0) return false;
+        } else if (c.filter === 'select') {
+          if (c.key === 'files') { if ((v === 'יש') !== (ev.files.length > 0)) return false; }
+          else if (ev[c.key] !== v) return false;
+        } else {
+          const ts = ev[c.sortKey], day = new Date(v + 'T00:00').getTime();
+          if (el.dataset.r === 'from' && ts < day) return false;
+          if (el.dataset.r === 'to' && ts >= day + 864e5) return false;
+        }
+      }
+      if (g) {
+        const hay = [ev.time, ev.type, ev.userName, ev.userEmail, ev.description, ev.fenceOk, ev.comments, ev.loggedAt,
+          ev.files.map(function (f) { return f.name; }).join(' ')].join(' ').toLowerCase();
+        if (hay.indexOf(g) < 0) return false;
+      }
+      return true;
+    });
+  }
+  function sorted(list) {
+    const c = colByKey(state.sort.key), k = c.sortKey || c.key, d = state.sort.dir;
+    return list.slice().sort(function (a, b) {
+      const x = k === 'files' ? a.files.length : a[k], y = k === 'files' ? b.files.length : b[k];
+      if (typeof x === 'number' && typeof y === 'number') return (x - y) * d;
+      return String(x || '').localeCompare(String(y || ''), 'he') * d;
+    });
+  }
+  function cell(ev, c) {
+    switch (c.key) {
+      case 'type': return '<span class="badge ' + (ev.type === 'ארוע' ? 'b-event' : 'b-axis') + '">' + esc(ev.type) + '</span>';
+      case 'fenceOk': return ev.fenceOk ? '<span class="badge ' + (ev.fenceOk === 'כן' ? 'b-ok' : 'b-bad') + '">' + esc(ev.fenceOk) + '</span>' : '<span class="muted">—</span>';
+      case 'userName': return '<span class="nowrap">' + esc(ev.userName) + '</span><div class="sub" dir="ltr">' + esc(ev.userEmail) + '</div>';
+      case 'files': return ev.files.length ? ev.files.map(function (f) {
+        const url = /^https:\/\//.test(f.url) ? f.url : '#';
+        return '<a href="' + esc(url) + '" target="_blank" rel="noopener" class="nowrap">' + esc(f.name) + '</a>';
+      }).join('<br>') : '<span class="muted">—</span>';
+      case 'description': case 'comments': return ev[c.key] ? '<div class="clip">' + esc(ev[c.key]) + '</div>' : '<span class="muted">—</span>';
+      default: return '<span class="nowrap" dir="ltr">' + esc(ev[c.key]) + '</span>';
+    }
+  }
+  function renderEvents() {
+    $$('#evHead th[data-sort]').forEach(function (th) {
+      th.querySelector('.arrow').textContent = th.dataset.sort === state.sort.key ? (state.sort.dir > 0 ? '▲' : '▼') : '';
+      th.setAttribute('aria-sort', th.dataset.sort === state.sort.key ? (state.sort.dir > 0 ? 'ascending' : 'descending') : 'none');
+    });
+    const list = sorted(filtered());
+    $('#evCount').textContent = list.length + ' מתוך ' + state.events.length + ' רשומות';
+    $('#evBody').innerHTML = list.length ? list.map(function (ev) {
+      return '<tr>' + COLS.map(function (c) { return '<td>' + cell(ev, c) + '</td>'; }).join('') + '</tr>';
+    }).join('') : '<tr><td colspan="' + COLS.length + '" class="empty">אין רשומות להצגה</td></tr>';
+  }
+
+  /* ───────── admin: users ───────── */
+  async function loadUsers() {
+    $('#usersBody').innerHTML = '<tr><td colspan="5" class="empty">טוען…</td></tr>';
+    try { state.users = await call('getUsers', state.token); renderUsers(); }
+    catch (e) { if (e.message !== '__handled__') $('#usersBody').innerHTML = '<tr><td colspan="5" class="empty">' + esc(errMsg(e)) + '</td></tr>'; }
+  }
+  function renderUsers() {
+    $('#usersBody').innerHTML = state.users.map(function (u) {
+      const self = u.email === state.user.email ? ' disabled title="לא ניתן לשנות את המשתמש שלך"' : '';
+      return '<tr><td>' + esc(u.name) + '</td><td dir="ltr" style="text-align:right">' + esc(u.email) + '</td>' +
+        '<td><select data-u="role" data-email="' + esc(u.email) + '"' + self + '>' +
+        '<option value="logger"' + (u.role === 'logger' ? ' selected' : '') + '>רושם</option>' +
+        '<option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>מנהל</option></select></td>' +
+        '<td><label class="check" style="margin:0"><input type="checkbox" data-u="active" data-email="' + esc(u.email) + '"' +
+        (u.active ? ' checked' : '') + self + '> ' + (u.active ? 'פעיל' : 'מושבת') + '</label></td>' +
+        '<td class="nowrap" dir="ltr" style="text-align:right">' + esc(u.createdAt) + '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="empty">אין משתמשים</td></tr>';
+  }
+  $('#usersBody').addEventListener('change', async function (e) {
+    const el = e.target.closest('[data-u]'); if (!el) return;
+    const patch = { email: el.dataset.email };
+    if (el.dataset.u === 'role') patch.role = el.value; else patch.active = el.checked;
+    el.disabled = true;
+    try { state.users = await call('updateUser', state.token, patch); renderUsers(); toast('המשתמש עודכן'); }
+    catch (err) { if (err.message !== '__handled__') toast(errMsg(err), true); loadUsers(); }
+  });
+  $('#addUserForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const email = $('#nuEmail').value.trim(), name = $('#nuName').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return showErr($('#userErr'), 'יש להזין כתובת אימייל תקינה');
+    if (!name) return showErr($('#userErr'), 'יש להזין שם');
+    showErr($('#userErr'), '');
+    const btn = this.querySelector('button[type=submit]'); btn.disabled = true;
+    try {
+      state.users = await call('addUser', state.token, { email: email, name: name, role: $('#nuRole').value });
+      renderUsers(); this.reset(); toast('המשתמש נוסף');
+    } catch (err) { if (err.message !== '__handled__') showErr($('#userErr'), errMsg(err)); }
+    finally { btn.disabled = false; }
+  });
+
+  /* ───────── boot ───────── */
+  (async function init() {
+    if (DEMO) $('#demoBar').hidden = false;
+    const t = loadToken();
+    if (!t) return showLogin();
+    try {
+      const r = await run('whoAmI', t);
+      if (r && r.user) { state.token = t; state.user = r.user; showApp(); }
+      else { clearToken(); showLogin(); }
+    } catch (e) { showLogin(); }
+  })();
+
+  /* ───────── preview mock (only used when opened outside Apps Script) ───────── */
+  function makeMock() {
+    const me = { email: 'admin@example.com', name: 'דנה לוי', role: 'admin' };
+    const users = [
+      { email: 'admin@example.com', name: 'דנה לוי', role: 'admin', active: true, createdAt: '2026-10-01 08:00' },
+      { email: 'guard1@example.com', name: 'יוסי כהן', role: 'logger', active: true, createdAt: '2026-10-02 09:15' },
+      { email: 'guard2@example.com', name: 'מוחמד חסן', role: 'logger', active: true, createdAt: '2026-10-05 17:40' }
+    ];
+    function ev(id, t, type, u, desc, fence, com, files) {
+      const d = new Date(t.replace(' ', 'T'));
+      return { id: id, time: t, timeTs: d.getTime(), loggedAt: t, loggedTs: d.getTime() + 60000, type: type,
+        userName: u.name, userEmail: u.email, description: desc, fenceOk: fence, comments: com, files: files || [] };
+    }
+    const events = [
+      ev('1', '2026-10-28 06:02', 'פתיחת ציר', users[1], '', 'כן', ''),
+      ev('2', '2026-10-27 22:40', 'ארוע', users[2], 'רכב חשוד חנה ליד שער 3 כ-10 דקות ועזב', '', '', [{ name: 'רכב_שער3.jpg', url: 'https://drive.google.com/' }]),
+      ev('3', '2026-10-27 06:05', 'פתיחת ציר', users[2], '', 'לא', 'שער 2 נמצא פתוח, ננעל ודווח לקב"ט', [{ name: 'שער2.jpg', url: 'https://drive.google.com/' }]),
+      ev('4', '2026-10-26 14:20', 'ארוע', users[1], 'קריאה ממוקד — בדיקת אזעקה בבניין המזכירות, נמצא תקין', '', '')
+    ];
+    return {
+      signIn: function (c, t) { return { token: 'demo', trusted: t, user: me }; },
+      whoAmI: function () { return { user: null }; },
+      logout: function () { return { ok: true }; },
+      uploadFile: function (t, f) { return { id: 'f' + Date.now(), name: f.name, url: 'https://drive.google.com/' }; },
+      submitActivity: function (t, p) {
+        const time = p.activityTime.replace('T', ' ');
+        events.unshift(ev(String(Date.now()), time, p.type, me, p.description, p.fenceOk, p.comments,
+          p.files.map(function (f) { return { name: f.name, url: 'https://drive.google.com/' }; })));
+        return { ok: true };
+      },
+      getEvents: function () { return events.slice(); },
+      getUsers: function () { return users.slice(); },
+      addUser: function (t, u) {
+        if (users.some(function (x) { return x.email === u.email.toLowerCase(); })) throw new Error('משתמש עם אימייל זה כבר קיים');
+        users.push({ email: u.email.toLowerCase(), name: u.name, role: u.role, active: true, createdAt: nowLocal().replace('T', ' ') });
+        return users.slice();
+      },
+      updateUser: function (t, p) {
+        users.forEach(function (u) { if (u.email === p.email) { if (p.role) u.role = p.role; if (p.active !== undefined) u.active = p.active; } });
+        return users.slice();
+      }
+    };
+  }
+})();
+</script>
+</body>
+</html>
